@@ -341,7 +341,7 @@ Green's theorem是环路积分与二重积分转换的工具
 
 对于单个方格
 
-<img src="Math.assets/image-20230708191627769.png" style="zoom: 25%;" />
+<img src="Math.assets/1.png" style="zoom: 25%;" />
 $$
 C_1=P\mathrm{d}x 
 $$
