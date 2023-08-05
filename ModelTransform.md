@@ -1,4 +1,8 @@
+## VP Matrix in Coordinate
+
 ### View
+
+#### Left Hand
 
 $V$矩阵用于将模型变换到Camera空间
 
@@ -10,20 +14,20 @@ $V$矩阵用于将模型变换到Camera空间
 
 对于观察者而言，模型做任何变换等价与Camera做对应的逆变换
 
-初始态$V_{0}$没有任何变换，即在原点往$-z$轴方向看，Up方向$y$轴
+初始态$V_{0}$没有任何变换，即在原点往$z$轴方向看（左手系），Up方向$y$轴
 
 - Camera位置$(0,0,0)$
 - Up方向$(0,1,0)$
-- LookAt方向$(0,0,-1)$
+- LookAt方向$(0,0,1)$
 
 $V\rightarrow V_{0}$等价于
 
 - Translate 
   - $(x_p,y_p,z_p)\rightarrow (0,0,0)$
 - Rotate
-  - X  $(x_l,y_l,z_l)\times(x_u,y_u,z_u)=(x_r,y_r,z_r) \rightarrow (0,0,-1)\times (0,1,0)=(1,0,0)$
+  - X  $(x_u,y_u,z_u)\times(x_l,y_l,z_l)=(x_r,y_r,z_r) \rightarrow (0,1,0)\times(0,0,1)=(1,0,0)$
   - Y $(x_u,y_u,z_u) \rightarrow(0,1,0)$
-  - Z $(x_l,y_l,z_l) \rightarrow(0,0,-1)$
+  - Z $(x_l,y_l,z_l) \rightarrow(0,0,1)$
 
 Translate为
 $$
@@ -40,10 +44,68 @@ $$
 \left\{\begin{matrix}
 V_r^{-1}\times(1,0,0,0)^T=(x_r,y_r,z_r,0)\\
 V_r^{-1}\times(0,1,0,0)^T=(x_u,y_u,z_u,0)\\
-V_r^{-1}\times(0,0,-1,0)^T=(x_l,y_l,z_l,0)
+V_r^{-1}\times(0,0,1,0)^T=(x_l,y_l,z_l,0)
 \end{matrix}\right.
 $$
 得到
+$$
+V_r^{-1}=
+\begin{bmatrix}
+x_r&x_u&x_l&0\\
+y_r&y_u&y_l&0\\
+z_r&z_u&z_l&0\\
+0&0&0&1
+\end{bmatrix}
+$$
+通常取旋转矩阵$V_r$为正交矩阵
+$$
+V_r^{-1}=V_r^{T}
+$$
+即
+$$
+V_r=
+\begin{bmatrix}
+x_r&y_r&z_r&0\\
+x_u&y_u&z_u&0\\
+x_l&y_l&z_l&0\\
+0&0&0&1
+\end{bmatrix}
+$$
+因此
+$$
+V=V_rV_t=
+\begin{bmatrix}
+x_r&y_r&z_r&-(x_px_r+y_py_r+z_pz_r)\\
+x_u&y_u&z_u&-(x_px_u+y_py_u+z_pz_u)\\
+x_l&y_l&z_l&-(x_px_l+y_py_l+z_pz_l)\\
+0&0&0&1
+\end{bmatrix}
+$$
+实际上构建$V$矩阵是通过下列参数控制的
+$$
+\left\{\begin{matrix}
+(x_p,y_p,z_p)=position\\
+(w_x,w_y,w_z)=world~up\\
+(x_l,y_l,z_l)=look~at\\
+\end{matrix}\right.
+$$
+带入即可求得
+$$
+\left\{\begin{matrix}
+(x_r,y_r,z_r)=world~up\times look~at\\
+(x_u,y_u,z_u)=look~at\times~(x_r,y_r,z_r)
+\end{matrix}\right.
+$$
+
+这是glm::lookAtLH函数返回的view matrix
+
+#### Right Hand
+
+区别是LookAt方向$(0,0,-1)$，因此
+$$
+V_r^{-1}\times(0,0,-1,0)^T=(x_l,y_l,z_l,0)
+$$
+求得
 $$
 V_r^{-1}=
 \begin{bmatrix}
@@ -52,10 +114,6 @@ y_r&y_u&-y_l&0\\
 z_r&z_u&-z_l&0\\
 0&0&0&1
 \end{bmatrix}
-$$
-通常取旋转矩阵$V_r$为正交矩阵
-$$
-V_r^{-1}=V_r^{T}
 $$
 即
 $$
@@ -77,21 +135,14 @@ x_u&y_u&z_u&-(x_px_u+y_py_u+z_pz_u)\\
 0&0&0&1
 \end{bmatrix}
 $$
-实际上构建$V$矩阵是通过下列参数控制的
-$$
-\left\{\begin{matrix}
-(x_p,y_p,z_p)=position\\
-(w_x,w_y,w_z)=world~up\\
-(x_l,y_l,z_l)=look~at\\
-\end{matrix}\right.
-$$
-带入即可求得
+这里
 $$
 \left\{\begin{matrix}
 (x_r,y_r,z_r)=look~at\times~world~up\\
 (x_u,y_u,z_u)=(x_r,y_r,z_r)\times~look~at
 \end{matrix}\right.
 $$
+这是glm::lookAtRH函数返回的view matrix
 
 ### Projection
 
@@ -254,7 +305,7 @@ P_p=
 0&0&1&0
 \end{bmatrix}
 $$
-这是glm里面的glm::perspectiveLH_NO函数返回的projection matrix
+这是glm::perspectiveLH_NO函数返回的projection matrix
 
 #### 01Depth
 
@@ -300,7 +351,7 @@ P_p=
 0&0&1&0
 \end{bmatrix}
 $$
-这是glm里面的glm::perspectiveLH_ZO函数返回的projection matrix
+这是glm::perspectiveLH_ZO函数返回的projection matrix
 
 #### RightHand
 
@@ -316,4 +367,4 @@ P_{right}=P_p\times
 0&0&0&1
 \end{bmatrix}
 $$
-这是glm里面的glm::perspectiveRH_NO和glm::perspectiveRH_ZO函数返回的projection matrix
+这是glm::perspectiveRH_NO和glm::perspectiveRH_ZO函数返回的projection matrix
